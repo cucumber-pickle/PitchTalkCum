@@ -484,7 +484,10 @@ class PitchTalk:
                         user_id = str(user_info.get('id'))
                         self.headers = get_headers(user_id)
 
-                        self.process_query(query, submit_daily)
+                        try:
+                            self.process_query(query, submit_daily)
+                        except Exception as e:
+                            self.log(f"{Fore.RED + Style.BRIGHT}An error process_query: {e}{Style.RESET_ALL}")
                         self.log(f"{Fore.CYAN + Style.BRIGHT}-{Style.RESET_ALL}"*75)
                         account_delay = config['account_delay']
                         countdown_timer(random.randint(min(account_delay), max(account_delay)))

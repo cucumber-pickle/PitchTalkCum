@@ -43,11 +43,13 @@ Run bot
 Create a config.json file in the root directory with the following structure:
    ```json
 {
+    "update_lvl": true,
     "account_delay": [5, 10],
     "cycle_delay": [14400, 28800]
 }
    ```
 
+`update_lvl` - `true` / `false` - Auto Upgrade Level
 
 `delay_account`: Delay between processing different accounts (in seconds) - the minimum and maximum values are taken randomly
 

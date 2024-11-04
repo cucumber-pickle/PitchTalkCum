@@ -1,4 +1,5 @@
 {
+    "update_lvl": true,
     "account_delay": [5, 10],
     "cycle_delay": [14400, 28800]
 }

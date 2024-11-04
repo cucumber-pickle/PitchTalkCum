@@ -211,6 +211,20 @@ class PitchTalk:
         else:
             return None
 
+    def upgrade_level(self, token: str, query: str):
+        url = 'https://api.pitchtalk.app/v1/api/users/upgrade'
+        self.headers.update({
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json',
+            'X-Telegram-Hash': query
+        })
+
+        response = self.session.post(url, headers=self.headers)
+        if response.status_code == 201:
+            return response.json()
+        else:
+            return response.json()
+
     def set_proxy(self, proxy):
         self.session.proxies = {
             "http": proxy,
@@ -222,21 +236,34 @@ class PitchTalk:
             host_port = proxy.split('//')[-1]
         return host_port
 
-    # def question(self):
-    #     while True:
-    #         if config['submit_daily_task']:
-    #             submit_daily = "y"
-    #         else:
-    #             submit_daily = "n"
-    #         if submit_daily in ["y", "n"]:
-    #             submit_daily = submit_daily == "y"
-    #             break
-    #         else:
-    #             print(f"{Fore.RED+Style.BRIGHT}Invalid Input.{Fore.WHITE+Style.BRIGHT} Choose 'y' to submit or 'n' to skip.{Style.RESET_ALL}")
 
-        return submit_daily
+    def question(self):
+        # while True:
+        #     submit_daily = input("Submitted Daily Tasks? [y/n] -> ").strip().lower()
+        #     if submit_daily in ["y", "n"]:
+        #         submit_daily = submit_daily == "y"
+        #         break
+        #     else:
+        #         print(
+        #             f"{Fore.RED + Style.BRIGHT}Invalid Input.{Fore.WHITE + Style.BRIGHT} Choose 'y' to submit or 'n' to skip.{Style.RESET_ALL}")
+
+        while True:
+            up = config['update_lvl']
+            if up:
+                upgarde = 'y'
+            else:
+                upgarde = 'n'
+
+            if upgarde in ["y", "n"]:
+                upgarde = upgarde == "y"
+                break
+            else:
+                print(
+                    f"{Fore.RED + Style.BRIGHT}Invalid Input.{Fore.WHITE + Style.BRIGHT} Choose 'y' to upgrade or 'n' to skip.{Style.RESET_ALL}")
+
+        return  upgarde
         
-    def process_query(self, query, submit_daily: bool):
+    def process_query(self, query, submit_daily: bool, upgrade: bool):
 
         user_id, username = self.load_data(query)
 
@@ -442,6 +469,33 @@ class PitchTalk:
                     f"{Fore.YELLOW + Style.BRIGHT} Skipped {Style.RESET_ALL}"
                     f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
                 )
+
+            if upgrade:
+                upgrade_level = self.upgrade_level(token, query)
+                if isinstance(upgrade_level, dict) and 'message' in upgrade_level:
+                    error_message = upgrade_level['message']
+                    self.log(
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Upgrade{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} Level {user['level'] + 1} {Style.RESET_ALL}"
+                        f"{Fore.RED + Style.BRIGHT}Isn't Success{Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}] [ Reason{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} {error_message} {Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                    )
+                else:
+                    self.log(
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Upgrade{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} Level {user['level'] + 1} {Style.RESET_ALL}"
+                        f"{Fore.GREEN + Style.BRIGHT}Is Success{Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT} ]{Style.RESET_ALL}"
+                    )
+            else:
+                self.log(
+                    f"{Fore.MAGENTA + Style.BRIGHT}[ Upgrade{Style.RESET_ALL}"
+                    f"{Fore.WHITE + Style.BRIGHT} Level {user['level'] + 1} {Style.RESET_ALL}"
+                    f"{Fore.YELLOW + Style.BRIGHT}Skipped{Style.RESET_ALL}"
+                    f"{Fore.MAGENTA + Style.BRIGHT} ]{Style.RESET_ALL}"
+                )
                 
     def main(self):
         try:
@@ -453,6 +507,7 @@ class PitchTalk:
 
             # submit_daily = self.question()
             submit_daily = False
+            upgrade = self.question()
 
             while True:
                 self.log(
@@ -485,7 +540,7 @@ class PitchTalk:
                         self.headers = get_headers(user_id)
 
                         try:
-                            self.process_query(query, submit_daily)
+                            self.process_query(query, submit_daily, upgrade)
                         except Exception as e:
                             self.log(f"{Fore.RED + Style.BRIGHT}An error process_query: {e}{Style.RESET_ALL}")
                         self.log(f"{Fore.CYAN + Style.BRIGHT}-{Style.RESET_ALL}"*75)
